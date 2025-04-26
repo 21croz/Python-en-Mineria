@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Importar el modelo de bloques:
-block_model = pd.read_csv('marvin.blocks', sep=' ')
+block_model = pd.read_table('Bases de datos/modelo2.txt', sep='\t')
 
 # Definir las leyes de corte:
 # gvivero: agregar mínimo y máximo del modelo de forma automática

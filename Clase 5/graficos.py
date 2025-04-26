@@ -35,6 +35,9 @@ plt.show()
 
 
 
+# Se usa fig, ax cuando se quieren crear muchos gráficos
+# juntos, cuando se necesita personalizar un gráfico, o cuando
+# se quiere organizar el código de mejor manera.
 fig, axs = plt.subplots(1, 2)  # 1 fila, 2 columnas.
 
 axs[0].plot([1, 2, 3], [1, 4, 9])
