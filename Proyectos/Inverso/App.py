@@ -1,9 +1,10 @@
 import tkinter as tk
 import pandas as pd
 import matplotlib.pyplot as plt
+import threading
 
 from math import sqrt
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
@@ -27,7 +28,7 @@ class Main(tk.Tk):
 
     def app_variables(self):
         self.WIDTH = 600
-        self.HEIGHT = 520
+        self.HEIGHT = 580
         
         self.colors = {
             'BG': '#242424',
@@ -89,6 +90,9 @@ class Main(tk.Tk):
         self.label_distance = tk.Label(self.frame_options, text = 'Distancia Max.', **self.style_label)
         self.entry_distance = tk.Entry(self.frame_options, **self.style_entry)
         self.button_calculate = tk.Button(self.frame_options, text = 'Calcular', command = self.calculate)
+        
+        self.progressbar = ttk.Progressbar(self, orient = 'horizontal', length = 200, mode = 'determinate')
+        self.label_progress = tk.Label(self, text = '0.0%', **self.style_label)
         return
     
 
@@ -101,6 +105,9 @@ class Main(tk.Tk):
         self.label_distance.grid(row = 1, column = 0, pady = 5)
         self.entry_distance.grid(row = 1, column = 1)
         self.button_calculate.grid(row = 2, column = 0, columnspan = 2, pady = 5)
+        
+        self.progressbar.pack(pady = 5)
+        self.label_progress.place(x = 405, y = 523)
         return
     
 
@@ -158,14 +165,24 @@ class Main(tk.Tk):
         self.grade_col = self.df['grade']
 
         self.data = list(zip(self.x_col, self.y_col, self.grade_col))
-        
-        self.add_rows()
+
+        self.start_thread()
+        return
+    
+
+    def start_thread(self):
+        t = threading.Thread(target = self.add_rows)
+        t.start()
         return
     
 
     def add_rows(self):
         coords = set((row.X, row.Y) for row in self.df.itertuples(index = False))
-        print(coords)
+        self.n = 201*201 - len(coords)
+        it = 0
+
+        self.progressbar['maximum'] = self.n
+        self.progressbar["value"] = 0
 
         for x in range(-100, 101):
             for y in range(-100, 101):
@@ -173,6 +190,9 @@ class Main(tk.Tk):
                     grade = self.inverso_distancia(x, y, self.data, self.dist_max, self.peso)
                     new_row = pd.DataFrame([{'X': x, 'Y': y, 'grade': grade}])
                     self.df_modified = pd.concat([self.df_modified, new_row], ignore_index = True)
+                    
+                    it += 1
+                    self.after(0, self.update_bar, it)
 
         self.update_plot()
         return
@@ -189,6 +209,12 @@ class Main(tk.Tk):
                 denominador += 1/(distancia**peso)
 
         return numerador/denominador
+    
+
+    def update_bar(self, value):
+        self.progressbar['value'] = value
+        self.label_progress.config(text = f'{round(100/self.n*value, 1)}%')
+        return
     
 
     def update_plot(self):
